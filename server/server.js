@@ -61,17 +61,14 @@ app.post('/challeng', (req, res) => {
         if (data.length === 0){
             return res.status(500).send()
         } else {
-            Challenge.save({
-                title: req.body.title,
-                status: req.body.stat,
-                description: req.body.title,
-                prise: req.body.title,
-                term: req.body.title,
-                from: req.body.title,
-                to:req.body.title
-            })
+            console.log(data.password)
+            let newChalenge = {...req.body, from:data[0].password}
+            console.log(newChalenge)
+            let challenge = new Challenge(newChalenge)
+            challenge.save()
+            .then(data => res.status(200).json(data))
+            .catch(err => res.status(500).send(err))            
         }
-
     })
 })
 

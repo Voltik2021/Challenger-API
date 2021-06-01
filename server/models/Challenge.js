@@ -8,6 +8,7 @@ const schemaChallenge = new Schema({
     description: String,
     prise: String,
     term: Number,
+    token: String,
     from: String,
     to:String
 })
