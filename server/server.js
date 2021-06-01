@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 const User = require('./models/User');
 const Challenge = require('./models/Challenge');
+const { v4: uuidv4 } = require('uuid');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -16,15 +17,13 @@ db.once('open', () => {
     console.log('Connection to db established');
 });
 
-// app.get('/', (req, res) => { console.log('privet'); res.json()})
 
 app.post('/user/registration', (req, res) => {
     const salt = bcrypt.genSaltSync(10)
     const hash = bcrypt.hashSync(String(req.body.password), salt)    
     let newUser = {...req.body, password:hash, salt}
     User.find({
-        login: newUser.login,
-        password: hash        
+        login: newUser.login   
     }).then((data) => {
         if (data.length === 0) {
             const user = new User(newUser)
@@ -34,18 +33,46 @@ app.post('/user/registration', (req, res) => {
         } else {
             res.status(407).send('Аккаунт уже существует')
         }      
-    })   
-   
+    })    
+})
 
-    // const user = new User(req.body)
+app.post('/user/login', (req, res) => {
+    User.find({login: req.body.login})
+    .then((data) => {
+        if (data[0].token){
+            res.status(500).send('Вы уже залогинились')
+        }
+        if (!data[0]){
+            res.status(500).send('Пользователя не существует')
+        } 
+        let findUserPassword = bcrypt.hashSync(String(req.body.password), data[0].salt)
+        if (data[0].password === findUserPassword) {            
+            let token = uuidv4()
+            User.updateOne({password:findUserPassword}, {token:token})
+            .then(data => res.status(200).json(token))
+            .catch(err => res.status(500).send(err))
+        }
+    })
+})
 
-    // user.save((err, result) => {
-    //     if (err) {
-    //         console.log(err)
-    //     } else {
-    //         console.log(result)
-    //     }
-    // })
+app.post('/challeng', (req, res) => {
+    User.find({token:req.body.token})
+    .then((data) => {
+        if (data.length === 0){
+            return res.status(500).send()
+        } else {
+            Challenge.save({
+                title: req.body.title,
+                status: req.body.stat,
+                description: req.body.title,
+                prise: req.body.title,
+                term: req.body.title,
+                from: req.body.title,
+                to:req.body.title
+            })
+        }
+
+    })
 })
 
 
