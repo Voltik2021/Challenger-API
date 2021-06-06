@@ -18,6 +18,7 @@
   "homepage": "https://github.com/Voltik2021/Challenger-API#readme",
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "mongoose": "^5.12.12",
     "uuid": "^8.3.2"
