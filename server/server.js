@@ -91,7 +91,7 @@ app.get('/searchUser', (req, res) => {
 })
 
 app.post('/createChalleng', (req, res) => {
-    console.log('7777777')
+    console.log(req.body)
     let token = req.query.token
     User.findOne({ token: token })
         .then(data => {
@@ -99,7 +99,7 @@ app.post('/createChalleng', (req, res) => {
             if (!data) {
                 return res.status(500).json({err:'Вы не вошли в систему'})
             }
-            let newChalenge = { ...req.body, from: data._id }
+            let newChalenge = { ...req.body, from: data._id, status:req.body.to?'suggested':''}
             let challenge = new Challenge(newChalenge)
             challenge.save()
                 .then(data => res.status(200).json(data))
@@ -189,7 +189,7 @@ app.get('/refuseExecute', (req, res) => {
             if (!data) {
                 return res.status(500).json({err:'Вы не вошли в систему'})
             }
-            Challenge.updateOne({ _id: req.query.id }, { to: ''})
+            Challenge.updateOne({ _id: req.query.id }, { to: '', status:'rejected'})
                 .then(challenge => res.status(200).json(challenge))
                 .catch(err => res.status(500).send())
         })
