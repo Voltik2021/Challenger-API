@@ -9,7 +9,8 @@ const schemaChallenge = new Schema({
     prise: String,
     term: Number,    
     from: String,
-    to:String
+    to:String,
+    whoWasOffered:String
 })
 
 

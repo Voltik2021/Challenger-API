@@ -20,8 +20,7 @@ db.once('open', () => {
 });
 
 
-app.post('/user/registration', (req, res) => {
-    console.log('111111111111111')
+app.post('/user/registration', (req, res) => {    
     const salt = bcrypt.genSaltSync(10)    
     const hash = bcrypt.hashSync(String(req.body.password), salt)
     let newUser = { ...req.body, password: hash, salt }
@@ -34,10 +33,10 @@ app.post('/user/registration', (req, res) => {
             const user = new User(newUser)
             user.save()
                 .then((data) => { res.status(200).json(data) })
-                .catch((err) => { res.status(500).send(err) })
+                .catch((err) => { res.status(500).json(err) })
         } else {
             console.log('22222222222')
-            res.status(407).send('аккаунт уже существует')
+            res.status(403).json({err:'аккаунт уже существует'})
         }
     })
 })
@@ -45,24 +44,23 @@ app.post('/user/registration', (req, res) => {
 app.post('/user/login', (req, res) => {
     console.log('333333')
     User.find({ login: req.body.login })
-        .then((data) => {
-            console.log(data)
+        .then((data) => {           
             if (!data[0]) {
-                return res.status(500).send('Пользователя не существует')
+            return res.status(500).json({err:'Пользователя не существует'})
             }
-            if (data[0].token) {
-                console.log('55555')
-                return res.status(500).send('Вы уже залогинились')
+            if (data[0].token) {                
+                return res.status(500).json({err:'Вы уже залогинились'})
             }
 
             let findUserPassword = bcrypt.hashSync(String(req.body.password), data[0].salt)
             if (data[0].password === findUserPassword) {
                 let token = uuidv4()                
                 User.updateOne({ password: findUserPassword }, { token: token })
-                    .then(() => {
-                        console.log(token, '444444')
+                    .then(() => {                      
                         res.status(200).json(token)})
                     .catch(err => res.status(500).send(err))
+            } else {
+                return res.status(500).json({err:'Неверный пароль'})
             }
         })
 })
@@ -85,25 +83,26 @@ app.post('/createChalleng', (req, res) => {
         .then(data => {
             console.log(data)
             if (!data) {
-                return res.status(500).send('Вы не вошли в систему')
+                return res.status(500).json({err:'Вы не вошли в систему'})
             }
             let newChalenge = { ...req.body, from: data._id }
             let challenge = new Challenge(newChalenge)
             challenge.save()
                 .then(data => res.status(200).json(data))
-                .catch(err => res.status(500).send(err))
+                .catch(err => res.status(500).send())
 
         })
 })
 
 
 
-app.get('/users/getUsers', (req, res) => {
+app.get('/searchUser', (req, res) => {
     let token = req.query.token
+    console.log(req.query.name)
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
-                return res.status(500).send('Вы не вошли в систему')
+                return res.status(500).json({err:'Вы не вошли в систему'})
             }
             User.find({ name: req.query.name }, { name: 1, _id: 1 })
                 .then(users => res.status(200).json(users))
@@ -119,7 +118,7 @@ app.get('/MyChallenge', (req, res) => {
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
-                return res.status(500).send('Вы не вошли в систему')
+                return res.status(500).send({err:'Вы не вошли в систему'})
             }
             Challenge.find({ from: data._id })
                 .then(challenge => res.status(200).json(challenge))
@@ -133,7 +132,7 @@ app.post('/UpdateChallenge', (req, res) => {
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
-                return res.status(500).send('Вы не вошли в систему')
+                return res.status(500).json({err:'Вы не вошли в систему'})
             }
             Challenge.updateOne({ _id: req.query.id }, { ...req.body })
                 .then(challenge => res.status(200).json(challenge))
@@ -146,7 +145,7 @@ app.delete('/deleteChallenge', (req, res) => {
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
-                return res.status(500).send('Вы не вошли в систему')
+                return res.status(500).json({err:'Вы не вошли в систему'})
             }
             Challenge.deleteOne({ _id: req.query.id })
                 .then(challenge => res.status(200).json(challenge))
@@ -160,7 +159,7 @@ app.get('/getChallenge', (req, res) => {
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
-                return res.status(500).send('Вы не вошли в систему')
+                return res.status(500).json({err:'Вы не вошли в систему'})
             }
             Challenge.findOne({ _id: req.query.id })
                 .then(challenge => res.status(200).json(challenge))
