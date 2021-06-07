@@ -76,6 +76,20 @@ app.get('/user/unlogin', (req, res) => {
 
 })
 
+app.get('/searchUser', (req, res) => {
+    let token = req.query.token
+    console.log(req.query.name)
+    User.findOne({ token: token })
+        .then(data => {
+            if (!data) {
+                return res.status(500).json({err:'Вы не вошли в систему'})
+            }
+            User.find({ name: req.query.name }, { name: 1, _id: 1 })
+                .then(users => res.status(200).json(users))
+                .catch(err => res.status(500).send())
+        })
+})
+
 app.post('/createChalleng', (req, res) => {
     console.log('7777777')
     let token = req.query.token
@@ -94,24 +108,6 @@ app.post('/createChalleng', (req, res) => {
         })
 })
 
-
-
-app.get('/searchUser', (req, res) => {
-    let token = req.query.token
-    console.log(req.query.name)
-    User.findOne({ token: token })
-        .then(data => {
-            if (!data) {
-                return res.status(500).json({err:'Вы не вошли в систему'})
-            }
-            User.find({ name: req.query.name }, { name: 1, _id: 1 })
-                .then(users => res.status(200).json(users))
-                .catch(err => res.status(500).send())
-        })
-})
-
-
-
 app.get('/MyChallenge', (req, res) => {
     let token = req.query.token
     console.log(req.query)
@@ -125,6 +121,23 @@ app.get('/MyChallenge', (req, res) => {
                 .catch(err => res.status(500).send())
         })
 })
+
+app.get('/getOfferChallenge', (req, res) => {
+    let token = req.query.token 
+    console.log(req.query, '2222')  
+    User.findOne({ token: token })
+        .then(data => {
+            console.log(data, '1111')
+            if (!data) {
+                return res.status(500).send({err:'Вы не вошли в систему'})
+            }
+            
+            Challenge.find({ to: data._id })
+                .then(challenge => res.status(200).json(challenge))
+                .catch(err => res.status(500).send())
+        })
+})
+
 
 app.post('/UpdateChallenge', (req, res) => {
     let token = req.query.token
@@ -142,6 +155,7 @@ app.post('/UpdateChallenge', (req, res) => {
 
 app.delete('/deleteChallenge', (req, res) => {
     let token = req.query.token
+    console.log(req.query, req.query.token)
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
@@ -162,6 +176,20 @@ app.get('/getChallenge', (req, res) => {
                 return res.status(500).json({err:'Вы не вошли в систему'})
             }
             Challenge.findOne({ _id: req.query.id })
+                .then(challenge => res.status(200).json(challenge))
+                .catch(err => res.status(500).send())
+        })
+})
+
+app.get('/refuseExecute', (req, res) => {
+    let token = req.query.token
+    console.log(req.query.id, '11111')
+    User.findOne({ token: token })
+        .then(data => {
+            if (!data) {
+                return res.status(500).json({err:'Вы не вошли в систему'})
+            }
+            Challenge.updateOne({ _id: req.query.id }, { to: ''})
                 .then(challenge => res.status(200).json(challenge))
                 .catch(err => res.status(500).send())
         })
