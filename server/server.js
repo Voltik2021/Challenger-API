@@ -24,25 +24,25 @@ app.post('/user/registration', (req, res) => {
     const salt = bcrypt.genSaltSync(10)    
     const hash = bcrypt.hashSync(String(req.body.password), salt)
     let newUser = { ...req.body, password: hash, salt }
-    console.log(newUser)
+  
     User.find({
         login: newUser.login
     }).then((data) => {
-            console.log(data)
+        
         if (data.length === 0) {
             const user = new User(newUser)
             user.save()
                 .then((data) => { res.status(200).json(data) })
                 .catch((err) => { res.status(500).json(err) })
         } else {
-            console.log('22222222222')
+           
             res.status(403).json({err:'аккаунт уже существует'})
         }
     })
 })
 
 app.post('/user/login', (req, res) => {
-    console.log('333333')
+ 
     User.find({ login: req.body.login })
         .then((data) => {           
             if (!data[0]) {
@@ -66,9 +66,9 @@ app.post('/user/login', (req, res) => {
 })
 
 app.get('/user/unlogin', (req, res) => {
-    console.log('66666')
+  
     let token = req.query.token
-    console.log(token)
+
     User.findOneAndUpdate({ token: token }, { token: '' })
         .then(data => res.status(200).json(data))
         .catch(err => res.status(500).send())
@@ -78,7 +78,7 @@ app.get('/user/unlogin', (req, res) => {
 
 app.get('/searchUser', (req, res) => {
     let token = req.query.token
-    console.log(req.query.name)
+ 
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
@@ -91,11 +91,11 @@ app.get('/searchUser', (req, res) => {
 })
 
 app.post('/createChalleng', (req, res) => {
-    console.log(req.body)
+
     let token = req.query.token
     User.findOne({ token: token })
         .then(data => {
-            console.log(data)
+         
             if (!data) {
                 return res.status(500).json({err:'Вы не вошли в систему'})
             }
@@ -110,7 +110,7 @@ app.post('/createChalleng', (req, res) => {
 
 app.get('/MyChallenge', (req, res) => {
     let token = req.query.token
-    console.log(req.query)
+
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
@@ -123,16 +123,13 @@ app.get('/MyChallenge', (req, res) => {
 })
 
 app.get('/getOfferChallenge', (req, res) => {
-    let token = req.query.token 
-    console.log(req.query, '2222')  
+    let token = req.query.token     
     User.findOne({ token: token })
-        .then(data => {
-            console.log(data, '1111')
+        .then(data => {            
             if (!data) {
                 return res.status(500).send({err:'Вы не вошли в систему'})
-            }
-            
-            Challenge.find({ to: data._id })
+            }            
+            Challenge.find({ to: data._id, status:'suggested' })
                 .then(challenge => res.status(200).json(challenge))
                 .catch(err => res.status(500).send())
         })
@@ -141,13 +138,13 @@ app.get('/getOfferChallenge', (req, res) => {
 
 app.post('/UpdateChallenge', (req, res) => {
     let token = req.query.token
-    console.log(req.query.id, '11111')
+    console.log(req.body, '11111')
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
                 return res.status(500).json({err:'Вы не вошли в систему'})
             }
-            Challenge.updateOne({ _id: req.query.id }, { ...req.body })
+            Challenge.updateOne({ _id: req.query.id }, { ...req.body, status:req.body.to?'suggested':'' })
                 .then(challenge => res.status(200).json(challenge))
                 .catch(err => res.status(500).send())
         })
@@ -155,7 +152,7 @@ app.post('/UpdateChallenge', (req, res) => {
 
 app.delete('/deleteChallenge', (req, res) => {
     let token = req.query.token
-    console.log(req.query, req.query.token)
+
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
@@ -169,7 +166,7 @@ app.delete('/deleteChallenge', (req, res) => {
 
 app.get('/getChallenge', (req, res) => {
     let token = req.query.token
-    console.log(req.query.id)
+  
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
@@ -183,13 +180,88 @@ app.get('/getChallenge', (req, res) => {
 
 app.get('/refuseExecute', (req, res) => {
     let token = req.query.token
-    console.log(req.query.id, '11111')
+
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
                 return res.status(500).json({err:'Вы не вошли в систему'})
             }
             Challenge.updateOne({ _id: req.query.id }, { to: '', status:'rejected'})
+                .then(challenge => res.status(200).json(challenge))
+                .catch(err => res.status(500).send())
+        })
+})
+
+app.get('/acceptedForCompletion', (req, res) => {
+    let token = req.query.token
+    let date = req.query.date
+    
+   
+    User.findOne({ token: token })
+        .then(data => {
+            if (!data) {
+                return res.status(500).json({err:'Вы не вошли в систему'})
+            }
+            Challenge.updateOne({ _id: req.query.id }, {status:'accepted', dateOfAcceptance: date})
+                .then(challenge => res.status(200).json(challenge))
+                .catch(err => res.status(500).send())
+        })
+})
+
+app.get('/getAcceptedChallenge', (req, res) => {
+    let token = req.query.token     
+    User.findOne({ token: token })
+        .then(data => {
+         
+            if (!data) {
+                return res.status(500).send({err:'Вы не вошли в систему'})
+            }
+            
+            Challenge.find({ to: data._id, status:'accepted' })
+                .then(challenge => res.status(200).json(challenge))
+                .catch(err => res.status(500).send())
+        })
+})
+
+app.get('/executedChallenge', (req, res) => {
+    let token = req.query.token
+    let date = req.query.date
+    User.findOne({ token: token })
+        .then(data => {
+            if (!data) {
+                return res.status(500).json({err:'Вы не вошли в систему'})
+            }
+            Challenge.updateOne({ _id: req.query.id }, {status:'executed', completionDate:date})
+                .then(challenge => res.status(200).json(challenge))
+                .catch(err => res.status(500).send())
+        })
+})
+
+app.get('/getExecutedChallenge', (req, res) => {
+    let token = req.query.token     
+    User.findOne({ token: token })
+        .then(data => {
+        
+            if (!data) {
+                return res.status(500).send({err:'Вы не вошли в систему'})
+            }
+            
+            Challenge.find({ to: data._id, status:'executed' })
+                .then(challenge => res.status(200).json(challenge))
+                .catch(err => res.status(500).send())
+        })
+})
+
+app.get('/getUserCompletedMyTest', (req, res) => {
+    let token = req.query.token     
+    User.findOne({ token: token })
+        .then(data => {
+    
+            if (!data) {
+                return res.status(500).send({err:'Вы не вошли в систему'})
+            }
+            
+            Challenge.find({ from: data._id, status:'executed' })
                 .then(challenge => res.status(200).json(challenge))
                 .catch(err => res.status(500).send())
         })
