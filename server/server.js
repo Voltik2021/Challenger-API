@@ -78,14 +78,18 @@ app.get('/user/unlogin', (req, res) => {
 
 app.get('/searchUser', (req, res) => {
     let token = req.query.token
- 
+    console.log(req.query.name)
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
                 return res.status(500).json({err:'Вы не вошли в систему'})
             }
             User.find({ name: req.query.name }, { name: 1, _id: 1 })
-                .then(users => res.status(200).json(users))
+                .then(users => {
+                    if (!users.length) {
+                        res.status(500).json([{name:'Не определён'}])
+                    }
+                    res.status(200).json(users)})
                 .catch(err => res.status(500).send())
         })
 })
@@ -138,7 +142,7 @@ app.get('/getOfferChallenge', (req, res) => {
 
 app.post('/UpdateChallenge', (req, res) => {
     let token = req.query.token
-    console.log(req.body, '11111')
+    console.log(req.query.id, req.body, '11111')
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
