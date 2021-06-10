@@ -269,5 +269,18 @@ app.get('/getUserCompletedMyTest', (req, res) => {
         })
 })
 
+app.get('/expiredChallenge', (req, res) => {
+    let token = req.query.token    
+    User.findOne({ token: token })
+        .then(data => {
+            if (!data) {
+                return res.status(500).json({err:'Вы не вошли в систему'})
+            }
+            Challenge.updateOne({ _id: req.query.id }, {status:'expired'})
+                .then(challenge => res.status(200).json(challenge))
+                .catch(err => res.status(500).send())
+        })
+})
+
 
 app.listen(process.env.PORT || 3000, () => { console.log('Example app listening on port 3000!') });
