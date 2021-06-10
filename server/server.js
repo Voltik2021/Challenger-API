@@ -198,9 +198,7 @@ app.get('/refuseExecute', (req, res) => {
 
 app.get('/acceptedForCompletion', (req, res) => {
     let token = req.query.token
-    let date = req.query.date
-    
-   
+    let date = req.query.date   
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
