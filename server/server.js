@@ -47,10 +47,7 @@ app.post('/user/login', (req, res) => {
         .then((data) => {           
             if (!data[0]) {
             return res.status(500).json({err:'Пользователя не существует'})
-            }
-            if (data[0].token) {                
-                return res.status(500).json({err:'Вы уже залогинились'})
-            }
+            }           
 
             let findUserPassword = bcrypt.hashSync(String(req.body.password), data[0].salt)
             if (data[0].password === findUserPassword) {
