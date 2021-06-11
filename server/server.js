@@ -41,8 +41,7 @@ app.post('/user/registration', (req, res) => {
     })
 })
 
-app.post('/user/login', (req, res) => {
- 
+app.post('/user/login', (req, res) => { 
     User.find({ login: req.body.login })
         .then((data) => {           
             if (!data[0]) {
@@ -75,13 +74,13 @@ app.get('/user/unlogin', (req, res) => {
 
 app.get('/searchUser', (req, res) => {
     let token = req.query.token
-    console.log(req.query.name)
+    console.log(req.query.login)
     User.findOne({ token: token })
         .then(data => {
             if (!data) {
                 return res.status(500).json({err:'Вы не вошли в систему'})
             }
-            User.find({ name: req.query.name }, { name: 1, _id: 1 })
+            User.find({ login: req.query.login }, { name: 1, _id: 1 })
                 .then(users => {
                     if (!users.length) {
                         res.status(500).json([{name:'Не определён'}])
