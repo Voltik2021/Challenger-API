@@ -101,6 +101,26 @@ app.get('/searchUser', (req, res) => {
         })
 })
 
+app.get('/getUserId', (req, res) => {
+    let token = req.query.token    
+    const id = req.query.id   
+    User.findOne({ token: token })
+        .then(data => {          
+            if (!data) {
+                return res.status(500).json({ err: 'Вы не вошли в систему' })
+            }
+            User.findById({ _id: id}, { login: 1, name: 1, _id: 1 })
+                .then(user => { 
+                    console.log(user)                   
+                    if (!user) {
+                        res.status(500).send()
+                    }
+                    res.status(200).json(user)
+                })
+                .catch(err => res.status(500).send())
+        })
+})
+
 app.post('/createChalleng', (req, res) => {
 
     let token = req.query.token
